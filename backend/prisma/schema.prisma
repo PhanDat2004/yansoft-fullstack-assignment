@@ -31,3 +31,61 @@ model Task {
 
   @@map("tasks")
 }
+
+enum EventStatus {
+  UPCOMING
+  ONGOING
+  FINISHED
+}
+
+enum BookingStatus {
+  PENDING
+  CONFIRMED
+  EXPIRED
+  CANCELLED
+}
+
+model User {
+  id       String    @id
+  email    String    @unique
+  bookings Booking[]
+
+  @@map("users")
+}
+
+model Event {
+  id        String      @id @default(uuid())
+  name      String
+  startTime DateTime
+  status    EventStatus @default(UPCOMING)
+  seats     Seat[]
+
+  @@map("events")
+}
+
+model Seat {
+  id         String    @id @default(uuid())
+  eventId    String
+  seatNumber String
+  price      Int
+  event      Event     @relation(fields: [eventId], references: [id])
+  bookings   Booking[]
+
+  @@unique([eventId, seatNumber])
+  @@map("seats")
+}
+
+model Booking {
+  id          String        @id @default(uuid())
+  userId      String
+  seatId      String
+  status      BookingStatus @default(PENDING)
+  expiresAt   DateTime
+  confirmedAt DateTime?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  user        User          @relation(fields: [userId], references: [id])
+  seat        Seat          @relation(fields: [seatId], references: [id])
+
+  @@map("bookings")
+}
